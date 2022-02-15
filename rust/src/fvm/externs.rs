@@ -1,8 +1,7 @@
 use anyhow::{anyhow, Context};
 use fvm::externs::{Consensus, Externs, Rand};
-use fvm_shared::address::Address;
 use fvm_shared::clock::ChainEpoch;
-use fvm_shared::consensus::ConsensusFault;
+use fvm_shared::consensus::ConsensusFaultWithGas;
 use fvm_shared::crypto::randomness::DomainSeparationTag;
 use num_traits::FromPrimitive;
 
@@ -83,11 +82,12 @@ impl Consensus for CgoExterns {
         h1: &[u8],
         h2: &[u8],
         extra: &[u8],
-    ) -> anyhow::Result<Option<ConsensusFault>> {
+    ) -> anyhow::Result<ConsensusFaultWithGas> {
         unsafe {
             let mut miner_id: u64 = 0;
             let mut epoch: i64 = 0;
             let mut fault_type: i64 = 0;
+            let mut gas_used: i64 = 0;
             match cgo_extern_verify_consensus_fault(
                 self.handle,
                 h1.as_ptr(),
@@ -99,17 +99,19 @@ impl Consensus for CgoExterns {
                 &mut miner_id,
                 &mut epoch,
                 &mut fault_type,
+                &mut gas_used,
             ) {
-                0 => Ok(Some(ConsensusFault {
-                    target: Address::new_id(miner_id),
+                0 => Ok(ConsensusFaultWithGas {
+                    target: miner_id,
                     epoch,
                     fault_type: FromPrimitive::from_i64(fault_type)
                         .context("invalid fault type")?,
-                })),
+                    gas_used,
+                }),
                 r @ 1.. => panic!("invalid return value from has: {}", r),
                 ERR_NO_EXTERN => panic!("extern {} not registered", self.handle),
                 e => Err(anyhow!(
-                    "cgo extern 'get_beacon_randomness' failed with error code {}",
+                    "cgo extern 'verify_consensus_fault' failed with error code {}",
                     e
                 )),
             }

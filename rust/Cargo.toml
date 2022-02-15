@@ -74,8 +74,8 @@ bindgen=[]
 # Patched in
 [patch.crates-io]
 cid = { git = "https://github.com/multiformats/rust-cid", branch = "steb/cbor-hack" }
-fvm = { git = "https://github.com/filecoin-project/ref-fvm", branch = "steb/extern" }
-fvm_shared = { git = "https://github.com/filecoin-project/ref-fvm", branch = "steb/extern" }
+fvm = { path = '../../../../fvm/fvm' }
+fvm_shared = { path = '../../../../fvm/shared' }
 forest_bitfield = { git = "https://github.com/filecoin-project/ref-fvm", branch = "steb/extern" }
 ipld_amt = { git = "https://github.com/filecoin-project/ref-fvm", branch = "steb/extern" }
 ipld_hamt = { git = "https://github.com/filecoin-project/ref-fvm", branch = "steb/extern" }
